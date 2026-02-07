@@ -8,9 +8,10 @@ from config.model_config import get_model
 jira_tools = JiraTools()
 
 # Wrap methods as CAMEL FunctionTools
-jira_create_tool = FunctionTool(jira_tools.create_ticket)
+jira_propose_tool = FunctionTool(jira_tools.propose_ticket)
 jira_get_tool = FunctionTool(jira_tools.get_ticket)
 jira_update_tool = FunctionTool(jira_tools.update_ticket_status)
+jira_update_fields_tool = FunctionTool(jira_tools.update_ticket)
 jira_comment_tool = FunctionTool(jira_tools.add_comment)
 jira_list_tool = FunctionTool(jira_tools.list_tickets)
 
@@ -22,9 +23,10 @@ pm_agent = ChatAgent(
     system_message=PM_AGENT_PROMPT,
     model=model,
     tools=[
-        jira_create_tool,
+        jira_propose_tool,
         jira_get_tool,
         jira_update_tool,
+        jira_update_fields_tool,
         jira_comment_tool,
         jira_list_tool,
     ]

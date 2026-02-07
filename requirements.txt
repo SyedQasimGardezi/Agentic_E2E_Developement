@@ -3,3 +3,8 @@ requests>=2.31.0
 jira>=3.5.0
 pytest>=7.4.0
 camel-ai[all]
+fastapi>=0.100.0
+uvicorn>=0.22.0
+python-multipart
+pydantic>=2.0.0
+colorlog>=6.7.0

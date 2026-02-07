@@ -7,7 +7,7 @@ def get_model():
     """Returns a configured CAMEL model instance for Azure OpenAI 5.1."""
 
     model_config = ChatGPTConfig(
-        temperature=0.7,
+        temperature=0.0,
     )
 
     model = ModelFactory.create(
