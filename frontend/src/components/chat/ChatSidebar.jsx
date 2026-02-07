@@ -6,15 +6,40 @@ import {
   Zap, 
   Cpu, 
   Send, 
-  Loader2 
+  Loader2,
+  Code2,
+  Users,
+  Briefcase,
+  GitBranch
 } from 'lucide-react';
+import { fetchGithubBranches } from '../../services/api';
 import MessageBubble from './MessageBubble';
 
-const ChatSidebar = ({ messages, isLoading, onSendMessage, tickets, onApproveProposal, onCancelProposal }) => {
+const ChatSidebar = ({ 
+    messages, 
+    isLoading, 
+    onSendMessage, 
+    tickets, 
+    onApproveProposal, 
+    onCancelProposal,
+    activeAgent,
+    setActiveAgent,
+    activeTicket,
+    setActiveTicket,
+    activeBranch,
+    setActiveBranch
+}) => {
   const [input, setInput] = useState('');
   const [showMentions, setShowMentions] = useState(false);
   const [mentionFilter, setMentionFilter] = useState('');
+  const [branches, setBranches] = useState([]);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    if (activeAgent === 'dev') {
+        fetchGithubBranches().then(setBranches);
+    }
+  }, [activeAgent]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -47,6 +72,10 @@ const ChatSidebar = ({ messages, isLoading, onSendMessage, tickets, onApprovePro
     parts.pop();
     setInput(parts.length > 0 ? parts.join(' ') + ` @${key} ` : `@${key} `);
     setShowMentions(false);
+    // Auto-set the active ticket context if switched to dev
+    if (activeAgent === 'dev') {
+        setActiveTicket(key);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -56,6 +85,53 @@ const ChatSidebar = ({ messages, isLoading, onSendMessage, tickets, onApprovePro
     setInput('');
     setShowMentions(false);
   };
+   
+  const AgentSelector = () => (
+      <div style={{display: 'flex', gap: 4, background: 'var(--bg-main)', padding: 4, borderRadius: 8, marginBottom: 12, border: '1px solid var(--border)'}}>
+        <div 
+            onClick={() => { setActiveAgent('pm'); setActiveTicket(null); }}
+            style={{
+                flex: 1, 
+                padding: '6px 12px', 
+                borderRadius: 6, 
+                fontSize: '0.75rem', 
+                fontWeight: 700, 
+                cursor: 'pointer',
+                background: activeAgent === 'pm' ? 'white' : 'transparent',
+                color: activeAgent === 'pm' ? 'var(--accent-pm)' : 'var(--text-muted)',
+                boxShadow: activeAgent === 'pm' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 0.2s'
+            }}
+        >
+            <Briefcase size={14} /> PRODUCT MGR
+        </div>
+        <div 
+            onClick={() => setActiveAgent('dev')}
+            style={{
+                flex: 1, 
+                padding: '6px 12px', 
+                borderRadius: 6, 
+                fontSize: '0.75rem', 
+                fontWeight: 700, 
+                cursor: 'pointer',
+                background: activeAgent === 'dev' ? 'white' : 'transparent',
+                color: activeAgent === 'dev' ? 'var(--accent-dev)' : 'var(--text-muted)',
+                boxShadow: activeAgent === 'dev' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 0.2s'
+            }}
+        >
+            <Code2 size={14} /> DEVELOPER
+        </div>
+      </div>
+  );
 
   return (
     <aside className="sidebar-panel">
@@ -68,6 +144,63 @@ const ChatSidebar = ({ messages, isLoading, onSendMessage, tickets, onApprovePro
           <Maximize2 size={16} color="var(--text-muted)" />
         </div>
       </header>
+      
+      <div style={{padding: '0 12px'}}>
+        <AgentSelector />
+        {activeAgent === 'dev' && (
+            <div style={{display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12}}>
+                <div style={{
+                    background: activeTicket ? '#f0fdf4' : '#fef2f2', 
+                    border: `1px solid ${activeTicket ? '#bbf7d0' : '#fecaca'}`,
+                    borderRadius: 6,
+                    padding: '8px 12px',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                }}>
+                    <span style={{fontWeight: 600, color: activeTicket ? '#15803d' : '#991b1b'}}>
+                        {activeTicket ? `CONTEXT: ${activeTicket}` : '⚠️ SELECT TICKET'}
+                    </span>
+                    {activeTicket && (
+                        <button onClick={() => setActiveTicket(null)} style={{background:'none', border:'none', cursor:'pointer'}}>
+                            <Users size={12} color="#15803d"/>
+                        </button>
+                    )}
+                </div>
+
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'var(--bg-main)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 6,
+                    padding: '4px 8px'
+                }}>
+                    <GitBranch size={14} color="var(--text-muted)" />
+                    <select 
+                        value={activeBranch || 'main'} 
+                        onChange={(e) => setActiveBranch(e.target.value)}
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            color: 'var(--text-secondary)',
+                            flex: 1,
+                            outline: 'none',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {branches.length > 0 ? branches.map(b => (
+                            <option key={b} value={b}>{b}</option>
+                        )) : <option value="main">main</option>}
+                    </select>
+                </div>
+            </div>
+        )}
+      </div>
       
       <div className="chat-scroll">
         {messages.length > 0 ? messages.map(msg => (

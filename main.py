@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from contextlib import asynccontextmanager
 
-from routes import agent, jira
+from routes import agent, jira, github
 from logging_config.logger import logger
 
 @asynccontextmanager
@@ -26,6 +26,7 @@ app.add_middleware(
 # Include routers
 app.include_router(agent.router)
 app.include_router(jira.router)
+app.include_router(github.router)
 
 @app.get("/")
 async def root():
@@ -39,7 +40,8 @@ async def health_check():
         "version": "1.0.0",
         "modules": {
             "agent": "active",
-            "jira": "active"
+            "jira": "active",
+            "github": "active"
         }
     }
 

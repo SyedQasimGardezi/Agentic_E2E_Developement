@@ -17,4 +17,8 @@ class Settings:
     JIRA_EMAIL = os.getenv("JIRA_EMAIL")
     JIRA_PROJECT_KEY = os.getenv("JIRA_PROJECT_KEY")
 
+    # GitHub Settings
+    GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
+    GITHUB_DEFAULT_REPO = "SyedQasimGardezi/Test-Repo"
+
 settings = Settings()

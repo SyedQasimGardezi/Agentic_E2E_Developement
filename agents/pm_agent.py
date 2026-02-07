@@ -1,33 +1,44 @@
 from camel.agents import ChatAgent
-from camel.toolkits import FunctionTool
+from camel.toolkits import FunctionTool, GithubToolkit
 from tools.jira_tools import JiraTools
 from prompts.pm_agent_prompt import PM_AGENT_PROMPT
 from config.model_config import get_model
+from config.settings import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Initialize Jira tools
 jira_tools = JiraTools()
 
-# Wrap methods as CAMEL FunctionTools
-jira_propose_tool = FunctionTool(jira_tools.propose_ticket)
-jira_get_tool = FunctionTool(jira_tools.get_ticket)
-jira_update_tool = FunctionTool(jira_tools.update_ticket_status)
-jira_update_fields_tool = FunctionTool(jira_tools.update_ticket)
-jira_comment_tool = FunctionTool(jira_tools.add_comment)
-jira_list_tool = FunctionTool(jira_tools.list_tickets)
+# Wrap Jira methods as CAMEL FunctionTools
+jira_tools_list = [
+    FunctionTool(jira_tools.propose_ticket),
+    FunctionTool(jira_tools.get_ticket),
+    FunctionTool(jira_tools.update_ticket_status),
+    FunctionTool(jira_tools.update_ticket),
+    FunctionTool(jira_tools.add_comment),
+    FunctionTool(jira_tools.list_tickets),
+]
+
+# Initialize GitHub tools (Optional)
+github_tools_list = []
+if settings.GITHUB_ACCESS_TOKEN:
+    try:
+        gh_toolkit = GithubToolkit(access_token=settings.GITHUB_ACCESS_TOKEN)
+        github_tools_list = gh_toolkit.get_tools()
+        logger.info("GitHub tools enabled for PM Agent.")
+    except Exception as e:
+        logger.warning(f"Failed to initialize GitHub tools for agent: {e}")
+else:
+    logger.info("GitHub tools disabled (no token provided).")
 
 # Get centralized model configuration (always uses Azure 5.1 as per requirements)
 model = get_model()
 
-# Create PM Agent with Jira tools
+# Create PM Agent with all tools
 pm_agent = ChatAgent(
     system_message=PM_AGENT_PROMPT,
     model=model,
-    tools=[
-        jira_propose_tool,
-        jira_get_tool,
-        jira_update_tool,
-        jira_update_fields_tool,
-        jira_comment_tool,
-        jira_list_tool,
-    ]
+    tools=jira_tools_list + github_tools_list
 )
