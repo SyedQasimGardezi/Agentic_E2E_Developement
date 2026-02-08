@@ -363,15 +363,15 @@ const GitConnectionModal = ({ isOpen, onClose, onConnected, isConnected, connect
                     <button 
                         className="proposal-btn" 
                         style={{
-                            background: 'transparent', 
-                            color: '#ef4444', 
+                            background: '#fff1f2', 
+                            color: '#e11d48', 
                             borderRadius: 16, 
-                            fontWeight: 600, 
-                            border: '1px solid transparent',
+                            fontWeight: 700, 
+                            border: '1px solid #fecdd3',
                             padding: '14px 24px',
                             cursor: 'pointer',
-                            fontSize: '0.85rem',
-                            textDecoration: 'underline'
+                            fontSize: '0.9rem',
+                            transition: 'all 0.2s'
                         }}
                         onClick={() => { 
                             setDetails(null); 
