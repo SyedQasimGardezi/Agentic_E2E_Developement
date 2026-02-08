@@ -2,28 +2,31 @@
 
 A premium, state-of-the-art agentic framework for autonomous web exploration and Jira project management. Powered by **CAMEL-AI** and scaled for the enterprise.
 
-## 🚀 Features
+## Key Features
 
-- **Context-Driven Specs Agent**: Analyzes Git repository structure to create comprehensive, developer-ready tickets
-- **Autonomous Developer Agent**: Executes implementation tasks with full repository context
+- **Context-Bound Planning**: Agents analyze repository structure before proposing changes.
+- **Unified Ecosystem**: Integrated Jira, GitHub, and Sandbox environments.
+- **Traceable Progress**: Real-time progress tracking for background agent tasks.
 - **Smart Jira Automation**: Seamlessly create, update, and manage Jira tickets based on complex requirements
+
 - **GitHub Integration**: Deep repository analysis for understanding codebase structure and dependencies
 - **Premium UI**: React-based operator interface with real-time progress tracking
 
-## 🎯 Agent Workflow
+## NEW WORKFLOW: CONTEXT-DRIVEN SPECIFICATION
 
-### Specs Agent (Planning & Analysis)
-The Specs Agent is your technical architect. When you request a new feature:
+### Phase 1: Deep Repository Analysis
 
-1. **Repository Analysis**: Explores the Git repository structure using GitHub tools
-2. **Integration Mapping**: Identifies all files that will be affected by the change
-3. **Context Gathering**: Reads relevant existing files to understand patterns and conventions
-4. **Comprehensive Specification**: Creates a detailed ticket with:
-   - Exact file paths to modify
-   - Step-by-step implementation guide
-   - Integration safety analysis
-   - Testing checklist
-   - Breaking change risk assessment
+The Specs Agent now mandates a thorough analysis phase before any ticket is proposed:
+
+1.  **Repository Analysis**: Explores the Git repository structure using GitHub tools
+2.  **Integration Mapping**: Identifies all files that will be affected by the change
+3.  **Context Gathering**: Reads relevant existing files to understand patterns and conventions
+4.  **Comprehensive Specification**: Creates a detailed ticket with:
+    - Exact file paths to modify
+    - Step-by-step implementation guide
+    - Integration safety analysis
+    - Testing checklist
+    - Breaking change risk assessment
 
 **Example**: "Add user authentication"
 - Specs Agent explores `/backend/routes`, `/frontend/src/components`
@@ -87,17 +90,25 @@ GITHUB_ACCESS_TOKEN=your_github_token
 
 ### 2. Backend Setup
 
-```bash
-# Install dependencies
-pip install -r requirements.txt
+1. **Install Dependencies**:
 
-# Run backend server
-python3 main.py
+    ```bash
+    pip install -r requirements.txt
+    cd frontend && npm install
+    ```
 
-# Run integration tests
-export PYTHONPATH=$PYTHONPATH:.
-python3 tests/test_specs_agent.py
-```
+2. **Run Backend Server**:
+
+    ```bash
+    python3 main.py
+    ```
+
+3.  **Run Integration Tests**:
+
+    ```bash
+    export PYTHONPATH=$PYTHONPATH:.
+    python3 tests/test_specs_agent.py
+    ```
 
 ### 3. Frontend Dashboard
 

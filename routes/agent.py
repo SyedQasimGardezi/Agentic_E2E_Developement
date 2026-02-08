@@ -1,9 +1,11 @@
+import os
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from camel.messages import BaseMessage
 from agents.specs_agent import specs_agent
 from agents.dev_agent import dev_agent
 from schemas.agent import ChatRequest, ChatResponse
 from routes.github import github_tools
+from config.settings import settings
 from tools.progress_tracker import progress_tracker
 from logging_config.logger import logger
 import anyio
@@ -24,8 +26,14 @@ async def run_agent_task(agent, message: str, task_id: str):
         progress_tracker.set_final_response(task_id, final_text)
         logger.info(f"✅ Background task {task_id} completed.")
     except Exception as e:
-        logger.error(f"❌ Background task {task_id} failed: {e}")
-        progress_tracker.update_step(task_id, "System", "failed", str(e))
+        error_msg = str(e)
+        logger.error(f"❌ Background task {task_id} failed: {error_msg}")
+        # Don't clear the checklist - just add error to logs
+        if "timed out" in error_msg.lower():
+            progress_tracker.add_log(task_id, f"⚠️ Agent timeout - work may have completed. Check logs and repository.")
+        else:
+            progress_tracker.add_log(task_id, f"❌ Error: {error_msg}")
+
 
 @router.get("/progress")
 async def get_agent_progress(task_id: str = "dev"):
@@ -40,28 +48,42 @@ async def chat_with_agent(request: ChatRequest, background_tasks: BackgroundTask
     logger.info(f"📩 [{agent_type.upper()}] Objective: {request.message[:50]}...")
     
     try:
+        repo = github_tools.current_repo or "NOT_CONNECTED"
+        jira_project = settings.JIRA_PROJECT_KEY
+        
         if agent_type == "dev":
             # Start with a clean but minimal state
             progress_tracker.init_task("dev", ["Analyzing Requirements"])
             
-            # Inject context if available
-            if request.metadata and request.metadata.get("ticket_key"):
-                ticket_key = request.metadata.get("ticket_key")
-                branch = request.metadata.get("branch", "main")
-                repo = github_tools.current_repo
-                token = github_tools.access_token or "None"
-                context_msg = f"Target Repository: {repo}. GITHUB_ACCESS_TOKEN: {token}. Target Ticket: {ticket_key}. Base Branch: {branch}. "
-                request.message = context_msg + request.message
+            # Enhanced context for Dev Agent
+            ticket_key = request.metadata.get("ticket_key") if request.metadata else None
+            branch = request.metadata.get("branch", "main") if request.metadata else "main"
+            
+            context_msg = f"[CONTEXT] Active Repository: {repo}. Jira Project: {jira_project}. "
+            if ticket_key:
+                context_msg += f"Target Ticket: {ticket_key}. Base Branch: {branch}. "
+                
+            if repo == "NOT_CONNECTED":
+                context_msg += "Warning: No repository linked. "
+            
+            request.message = context_msg + request.message
             
             # Start implementation in background
             background_tasks.add_task(run_agent_task, dev_agent, request.message, "dev")
             
             return ChatResponse(
-                response="Implementation task started in the workspace. Watch the progress tracker for updates.",
+                response=f"Implementation task started. Using repository: {repo}" if repo != "NOT_CONNECTED" else "Implementation task started. WARNING: No repository linked.",
                 status="in_progress"
             )
         else:
-            # Specs Agent remains synchronous as it is usually fast (planning)
+            # Enhanced context for Specs Agent (Planning)
+            context_msg = f"[CONTEXT] Active Repository: {repo}. Jira Project: {jira_project}. "
+            if repo == "NOT_CONNECTED":
+                context_msg += "Note: No repository is currently linked. "
+            
+            request.message = context_msg + request.message
+            
+            # Specs Agent remains synchronous as it is usually fast
             response = specs_agent.step(request.message)
             final_text = response.msg.content if response.msg else "Task processed."
             return ChatResponse(

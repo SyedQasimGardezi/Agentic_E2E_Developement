@@ -109,5 +109,7 @@ model = get_model()
 dev_agent = ChatAgent(
     system_message=DEV_AGENT_PROMPT,
     model=model,
-    tools=jira_dev_tools + code_tools + github_tools_list
+    tools=jira_dev_tools + code_tools + github_tools_list,
+    step_timeout=300
 )
+

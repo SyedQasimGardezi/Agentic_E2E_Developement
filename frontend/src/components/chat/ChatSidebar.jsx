@@ -255,17 +255,31 @@ const ChatSidebar = ({
               }
             }}
           />
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-            <div style={{display: 'flex', gap: 14, color: 'var(--text-muted)'}}>
-              <Zap size={18} cursor="pointer" />
-              <Cpu size={18} cursor="pointer" />
-              <Command size={18} cursor="pointer" />
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8}}>
+            <div style={{display: 'flex', gap: 20, color: 'var(--text-muted)'}}>
+              <Zap size={18} cursor="pointer" style={{transition: 'color 0.2s'}} onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'} />
+              <Cpu size={18} cursor="pointer" style={{transition: 'color 0.2s'}} onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'} />
+              <Command size={18} cursor="pointer" style={{transition: 'color 0.2s'}} onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'} />
             </div>
             <button 
               type="submit" 
-              style={{background: 'var(--text-primary)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 14px', fontWeight: 600, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: 6}}
+              disabled={isLoading || !input.trim()}
+              style={{
+                background: isLoading || !input.trim() ? 'var(--bg-secondary)' : 'var(--text-primary)', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: 8, 
+                padding: '8px 16px', 
+                fontWeight: 600, 
+                fontSize: '0.8rem', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 8,
+                cursor: isLoading || !input.trim() ? 'not-allowed' : 'pointer',
+                opacity: isLoading || !input.trim() ? 0.5 : 1
+              }}
             >
-              EXECUTE <Send size={14} />
+              EXECUTE <Send size={14} style={{marginLeft: 2}} />
             </button>
           </div>
         </form>

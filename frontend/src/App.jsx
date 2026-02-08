@@ -33,6 +33,20 @@ const App = () => {
             handleAgentTaskComplete(data.final_response);
             setPendingFinalResponse(false);
         }
+
+        // Check if task timed out or failed (detect from logs)
+        if (pendingFinalResponse && data.logs && data.logs.length > 0) {
+            const lastLog = data.logs[data.logs.length - 1];
+            if (lastLog.includes('timeout') || lastLog.includes('❌ Error:')) {
+                setIsLoading(false);
+                setPendingFinalResponse(false);
+                setMessages(prev => [...prev, { 
+                    id: Date.now(), 
+                    role: 'agent', 
+                    content: '⚠️ Task execution timed out. Check the sandbox logs and repository for completed work.' 
+                }]);
+            }
+        }
     }, 2000);
     return () => clearInterval(interval);
   }, [pendingFinalResponse]);

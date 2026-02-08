@@ -1,34 +1,29 @@
-# Example Ticket Format for Specs Agent
+# Jira Ticket Template - Integration-Ready Specification
 
 ## OBJECTIVE
-Add user authentication middleware to protect admin routes
+
+Implement a robust, production-grade authentication flow using JWT.
 
 ## REPOSITORY CONTEXT
 
 **Target Files**:
-- `backend/routes/admin.py` - Add authentication decorator to all admin endpoints
+
+- `backend/app/auth/router.py` - Add login/logout endpoints.
+- `backend/app/models/user.py` - Add password hashing methods.
 - `backend/middleware/auth.py` - Create new JWT validation middleware
 - `backend/models/user.py` - Add `is_admin` field to User model
 - `frontend/src/services/api.js` - Update API client to include auth headers
 
 **Related Components**:
-- Frontend: 
-  - `frontend/src/components/admin/AdminPanel.jsx` - Add login check
-  - `frontend/src/contexts/AuthContext.jsx` - Manage auth state
-- Backend:
-  - `backend/routes/auth.py` - Login/logout endpoints
-  - `backend/routes/admin.py` - Protected admin routes
-  - `backend/config/settings.py` - Add JWT_SECRET configuration
-- Database:
-  - `User` table needs `is_admin` boolean column
+
+- Frontend: `/frontend/src/components/auth/LoginForm.tsx`, `/frontend/src/context/AuthContext.tsx`
+- Backend: `/backend/app/services/jwt_service.py`
+- Database: `users` table needs `password_hash` column.
 
 **Dependencies**:
-- External:
-  - Backend: `PyJWT==2.8.0` (add to requirements.txt)
-  - Frontend: `jwt-decode==4.0.0` (add to package.json)
-- Internal:
-  - `backend/models/user.py` imports into `backend/routes/auth.py`
-  - `frontend/src/services/api.js` imported by all API-consuming components
+
+- External: `PyJWT`, `passlib[bcrypt]`
+- Internal: `FastAPI` app instance for route mounting.
 
 ## IMPLEMENTATION GUIDE
 

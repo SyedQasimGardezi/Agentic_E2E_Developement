@@ -210,7 +210,15 @@ const GitConnectionModal = ({ isOpen, onClose, onConnected, isConnected, connect
                 <div style={{display: 'flex', flexDirection: 'column', gap: 24}}>
                     <div style={{background: '#f8fafc', padding: 24, borderRadius: 24, border: '1px solid #e2e8f0', textAlign: 'center'}}>
                          <div style={{fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 800, marginBottom: 8}}>Linked Project</div>
-                         <div style={{fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)'}}>{details.repo_name}</div>
+                         <div style={{
+                           fontSize: '1.3rem', 
+                           fontWeight: 800, 
+                           color: 'var(--text-primary)',
+                           overflow: 'hidden',
+                           textOverflow: 'ellipsis',
+                           whiteSpace: 'nowrap',
+                           maxWidth: '100%'
+                         }}>{details.repo_name}</div>
                     </div>
 
                     <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12}}>

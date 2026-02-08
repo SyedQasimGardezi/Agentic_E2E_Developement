@@ -19,6 +19,6 @@ class Settings:
 
     # GitHub Settings
     GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
-    GITHUB_DEFAULT_REPO = "SyedQasimGardezi/Test-Repo"
+    GITHUB_DEFAULT_REPO = os.getenv("GITHUB_DEFAULT_REPO", "SyedQasimGardezi/Agentic_E2E_Developement")
 
 settings = Settings()
