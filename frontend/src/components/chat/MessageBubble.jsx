@@ -18,7 +18,7 @@ const MessageBubble = ({ msg, onApprove, onCancel }) => {
         const mentionText = props.href.replace('mention://', '');
         return <span className="mention-badge">{mentionText}</span>;
       }
-      return <a {...props} target="_blank" rel="noopener noreferrer" style={{color: 'var(--accent-pm)', textDecoration: 'underline'}} />;
+      return <a {...props} target="_blank" rel="noopener noreferrer" style={{color: 'var(--accent-specs)', textDecoration: 'underline'}} />;
     },
     p: ({node, ...props}) => <div style={{marginBottom: '0.5em'}} {...props} />,
     ul: ({node, ...props}) => <ul style={{marginLeft: '1.2em', marginBottom: '0.5em'}} {...props} />,
@@ -44,7 +44,7 @@ const MessageBubble = ({ msg, onApprove, onCancel }) => {
   return (
     <div className={`msg-bubble ${msg.role}`}>
       {isAgent && (
-        <div style={{fontSize: '0.65rem', fontWeight: 800, color: 'var(--accent-pm)', marginBottom: 8, letterSpacing: '0.05em'}}>
+        <div style={{fontSize: '0.65rem', fontWeight: 800, color: 'var(--accent-specs)', marginBottom: 8, letterSpacing: '0.05em'}}>
           SYSTEM TRACE // EXECUTED
         </div>
       )}

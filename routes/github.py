@@ -11,6 +11,27 @@ class ConnectRepoRequest(BaseModel):
     repo_name: str
     access_token: Optional[str] = None
 
+class CreateRepoRequest(BaseModel):
+    name: str
+    description: Optional[str] = ""
+    private: Optional[bool] = False
+
+@router.post("/create")
+async def create_repo(request: CreateRepoRequest):
+    """
+    Creates a new GitHub repository.
+    """
+    logger.info(f"Creating new GitHub repo: {request.name}")
+    try:
+        result = github_tools.create_repository(request.name, request.description, request.private)
+        if result.get("success"):
+            return result
+        else:
+            raise HTTPException(status_code=400, detail=result.get("error", "Failed to create repo"))
+    except Exception as e:
+        logger.error(f"Failed to create repo: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/status")
 async def get_github_status():
     """

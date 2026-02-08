@@ -106,7 +106,7 @@ const AgentHub = ({ tickets, progress, expandedParents, onToggle }) => {
       <div className="hub-column">
         <div className="hub-column-header">
           <span className="hub-column-title">
-            <Layout size={20} color="var(--accent-pm)" />
+            <Layout size={20} color="var(--accent-specs)" />
             PLANNING
           </span>
           <div className="column-stats">

@@ -21,7 +21,7 @@ export const fetchTickets = async () => {
   }
 };
 
-export const sendChatMessage = async (userText, agentType = 'pm', metadata = null) => {
+export const sendChatMessage = async (userText, agentType = 'specs', metadata = null) => {
   try {
     const res = await fetch(`${API_BASE}/agent/chat`, {
       method: 'POST',
@@ -111,5 +111,23 @@ export const fetchGithubBranches = async () => {
     } catch (err) {
         console.error("Failed to fetch github branches", err);
         return [];
+    }
+};
+
+export const createGithubRepo = async (name, description, isPrivate) => {
+    try {
+        const res = await fetch(`${API_BASE}/github/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, private: isPrivate })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Failed to create repo");
+        }
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to create github repo", err);
+        throw err;
     }
 };

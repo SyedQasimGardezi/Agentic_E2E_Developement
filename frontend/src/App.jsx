@@ -10,7 +10,7 @@ const App = () => {
   const [progress, setProgress] = useState({ steps: [], logs: [], final_response: null });
   const [isLoading, setIsLoading] = useState(false);
   const [expandedParents, setExpandedParents] = useState(new Set());
-  const [activeAgent, setActiveAgent] = useState('pm'); // 'pm' or 'dev'
+  const [activeAgent, setActiveAgent] = useState('specs'); // 'specs' or 'dev'
   const [activeTicket, setActiveTicket] = useState(null); // ticket key
   const [activeBranch, setActiveBranch] = useState('main'); 
   const [pendingFinalResponse, setPendingFinalResponse] = useState(false);
@@ -88,7 +88,7 @@ const App = () => {
             content: data.response 
           }]);
       } else {
-          // PM Agent is synchronous
+          // Specs Agent is synchronous
           handleAgentTaskComplete(data.response);
       }
     } catch (err) {

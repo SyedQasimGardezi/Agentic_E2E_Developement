@@ -7,46 +7,69 @@ const ConnectionIndicator = ({ icon: Icon, connected, label, onClick }) => {
   return (
     <div 
         onClick={onClick}
+        className="connection-indicator-btn"
         style={{
             display: 'flex', 
             alignItems: 'center', 
-            gap: 8, 
-            padding: '6px 12px', 
-            borderRadius: 20, 
-            background: connected ? '#f0fdf4' : '#fef2f2',
-            border: `1px solid ${connected ? '#bbf7d0' : '#fecaca'}`,
+            gap: 10, 
+            padding: '8px 16px', 
+            borderRadius: 24, 
+            background: connected ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.05)',
+            border: `1px solid ${connected ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.1)'}`,
             cursor: 'pointer',
-            transition: 'all 0.2s'
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            position: 'relative',
+            overflow: 'hidden'
         }}
     >
-        <div style={{position: 'relative'}}>
-            <Icon size={16} color={connected ? '#16a34a' : '#ef4444'} />
-            <div style={{
+        <div style={{position: 'relative', display: 'flex', alignItems: 'center'}}>
+            <Icon size={16} color={connected ? '#10b981' : '#f87171'} strokeWidth={connected ? 2.5 : 2} />
+            <div className={connected ? "connected-pulse" : ""} style={{
                 position: 'absolute', 
-                top: -2, 
-                right: -2, 
-                width: 8, 
-                height: 8, 
+                top: -3, 
+                right: -3, 
+                width: 7, 
+                height: 7, 
                 borderRadius: '50%', 
-                background: connected ? '#22c55e' : '#ef4444',
+                background: connected ? '#10b981' : '#ef4444',
                 border: '1.5px solid white'
             }} />
         </div>
-        <span style={{fontSize: '0.75rem', fontWeight: 700, color: connected ? '#166534' : '#991b1b'}}>
+        <span style={{
+            fontSize: '0.75rem', 
+            fontWeight: 800, 
+            color: connected ? '#065f46' : '#991b1b',
+            letterSpacing: '0.01em',
+            textTransform: 'uppercase'
+        }}>
             {label}
         </span>
+        
+        <style dangerouslySetInnerHTML={{ __html: `
+            .connection-indicator-btn:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+                border-color: ${connected ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.3)'};
+                background: ${connected ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.08)'};
+            }
+            .connection-indicator-btn:active {
+                transform: translateY(0);
+            }
+        `}} />
     </div>
   );
 };
 
 const ConnectionsBar = () => {
   const [gitConnected, setGitConnected] = useState(false);
+  const [repoName, setRepoName] = useState(null);
   const [isGitModalOpen, setIsGitModalOpen] = useState(false);
 
   useEffect(() => {
     // Check initial status
     fetchGithubStatus().then(status => {
          setGitConnected(status.connected);
+         setRepoName(status.repo_name);
     });
   }, []);
 
@@ -56,7 +79,7 @@ const ConnectionsBar = () => {
             <ConnectionIndicator 
                 icon={Github} 
                 connected={gitConnected} 
-                label={gitConnected ? "REPO LINKED" : "NO REPO"} 
+                label={gitConnected ? (repoName?.split('/')[1] || "REPO LINKED") : "LINK GITHUB"} 
                 onClick={() => setIsGitModalOpen(true)}
             />
             
@@ -71,11 +94,17 @@ const ConnectionsBar = () => {
         {isGitModalOpen && (
             <GitConnectionModal 
                 isOpen={isGitModalOpen} 
+                isConnected={gitConnected}
+                connectedRepoName={repoName}
                 onClose={() => setIsGitModalOpen(false)}
-                onConnected={(status) => {
-                    setGitConnected(status);
-                    // Don't close immediately so user sees success state? 
-                    // Or maybe close after delay. For now let user close manually.
+                onConnected={(data) => {
+                    if (data) {
+                        setGitConnected(true);
+                        setRepoName(data.repo_name);
+                    } else {
+                        setGitConnected(false);
+                        setRepoName(null);
+                    }
                 }}
             />
         )}

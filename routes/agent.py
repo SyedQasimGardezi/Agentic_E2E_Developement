@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from camel.messages import BaseMessage
-from agents.pm_agent import pm_agent
+from agents.specs_agent import specs_agent
 from agents.dev_agent import dev_agent
 from schemas.agent import ChatRequest, ChatResponse
 from routes.github import github_tools
@@ -21,7 +21,7 @@ async def run_agent_task(agent, message: str, task_id: str):
         # Run the blocking agent.step in a separate thread
         response = await anyio.to_thread.run_sync(_sync_agent_step, agent, message)
         final_text = response.msg.content if response.msg else "Task processed."
-        progress_tracker.final_response[task_id] = final_text
+        progress_tracker.set_final_response(task_id, final_text)
         logger.info(f"✅ Background task {task_id} completed.")
     except Exception as e:
         logger.error(f"❌ Background task {task_id} failed: {e}")
@@ -34,9 +34,9 @@ async def get_agent_progress(task_id: str = "dev"):
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_agent(request: ChatRequest, background_tasks: BackgroundTasks):
     """
-    Handles chat interactions with the selected Agent (PM or Dev).
+    Handles chat interactions with the selected Agent (Specs or Dev).
     """
-    agent_type = request.agent_type.lower() if request.agent_type else "pm"
+    agent_type = request.agent_type.lower() if request.agent_type else "specs"
     logger.info(f"📩 [{agent_type.upper()}] Objective: {request.message[:50]}...")
     
     try:
@@ -61,8 +61,8 @@ async def chat_with_agent(request: ChatRequest, background_tasks: BackgroundTask
                 status="in_progress"
             )
         else:
-            # PM Agent remains synchronous as it is usually fast (planning)
-            response = pm_agent.step(request.message)
+            # Specs Agent remains synchronous as it is usually fast (planning)
+            response = specs_agent.step(request.message)
             final_text = response.msg.content if response.msg else "Task processed."
             return ChatResponse(
                 response=final_text,

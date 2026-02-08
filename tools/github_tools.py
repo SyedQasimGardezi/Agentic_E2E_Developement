@@ -2,7 +2,7 @@ from typing import List, Optional, Dict, Any
 from camel.toolkits.github_toolkit import GithubToolkit
 from config.settings import settings
 from logging_config.logger import logger
-import os
+from models.github import GitHubRepo
 
 class GitHubTools:
     def __init__(self):
@@ -23,29 +23,29 @@ class GitHubTools:
     def connect_repo(self, repo_name: str) -> Dict[str, Any]:
         """
         Connects to a specific GitHub repository and verifies access.
-        
-        Args:
-            repo_name (str): The full name of the repository (e.g., 'owner/repo').
         """
         if not self.toolkit:
              return {"success": False, "error": "GitHub token not configured."}
 
         try:
-            # Verify access by trying to get the repo object
             repo = self.toolkit.github.get_repo(repo_name)
             self.current_repo = repo.full_name
-            logger.info(f"Connected to GitHub repo: {self.current_repo}")
             
-            return {
-                "success": True,
-                "repo_name": self.current_repo,
-                "description": repo.description,
-                "stars": repo.stargazers_count,
-                "forks": repo.forks_count,
-                "open_issues": repo.open_issues_count,
-                "language": repo.language,
-                "url": repo.html_url
-            }
+            repo_model = GitHubRepo(
+                full_name=repo.full_name,
+                name=repo.name,
+                description=repo.description,
+                private=repo.private,
+                stars=repo.stargazers_count,
+                forks=repo.forks_count,
+                open_issues=repo.open_issues_count,
+                language=repo.language,
+                url=repo.html_url
+            )
+            
+            result = repo_model.to_dict()
+            result["success"] = True
+            return result
         except Exception as e:
             logger.error(f"Failed to connect to repo {repo_name}: {e}")
             return {"success": False, "error": str(e)}
@@ -131,3 +131,39 @@ class GitHubTools:
         except Exception as e:
             logger.error(f"Failed to get file tree: {e}")
             return []
+
+    def create_repository(self, name: str, description: str = "", private: bool = False) -> Dict[str, Any]:
+        """
+        Creates a new GitHub repository for the authenticated user.
+        """
+        if not self.toolkit:
+            return {"success": False, "error": "GitHub token not configured."}
+        try:
+            user = self.toolkit.github.get_user()
+            repo = user.create_repo(
+                name=name,
+                description=description,
+                private=private,
+                auto_init=True
+            )
+            self.current_repo = repo.full_name
+            logger.info(f"Created new GitHub repo: {self.current_repo}")
+            
+            repo_model = GitHubRepo(
+                full_name=repo.full_name,
+                name=repo.name,
+                description=repo.description,
+                private=repo.private,
+                stars=repo.stargazers_count,
+                forks=repo.forks_count,
+                open_issues=repo.open_issues_count,
+                language=repo.language,
+                url=repo.html_url
+            )
+            
+            result = repo_model.to_dict()
+            result["success"] = True
+            return result
+        except Exception as e:
+            logger.error(f"Failed to create repo {name}: {e}")
+            return {"success": False, "error": str(e)}

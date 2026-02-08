@@ -89,7 +89,7 @@ const ChatSidebar = ({
   const AgentSelector = () => (
       <div style={{display: 'flex', gap: 4, background: 'var(--bg-main)', padding: 4, borderRadius: 8, marginBottom: 12, border: '1px solid var(--border)'}}>
         <div 
-            onClick={() => { setActiveAgent('pm'); setActiveTicket(null); }}
+            onClick={() => { setActiveAgent('specs'); setActiveTicket(null); }}
             style={{
                 flex: 1, 
                 padding: '6px 12px', 
@@ -97,9 +97,9 @@ const ChatSidebar = ({
                 fontSize: '0.75rem', 
                 fontWeight: 700, 
                 cursor: 'pointer',
-                background: activeAgent === 'pm' ? 'white' : 'transparent',
-                color: activeAgent === 'pm' ? 'var(--accent-pm)' : 'var(--text-muted)',
-                boxShadow: activeAgent === 'pm' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                background: activeAgent === 'specs' ? 'white' : 'transparent',
+                color: activeAgent === 'specs' ? 'var(--accent-specs)' : 'var(--text-muted)',
+                boxShadow: activeAgent === 'specs' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -107,7 +107,7 @@ const ChatSidebar = ({
                 transition: 'all 0.2s'
             }}
         >
-            <Briefcase size={14} /> PRODUCT MGR
+            <Briefcase size={14} /> SPECS AGENT
         </div>
         <div 
             onClick={() => setActiveAgent('dev')}
@@ -138,7 +138,7 @@ const ChatSidebar = ({
       <header className="sidebar-header">
         <span style={{display: 'flex', alignItems: 'center', gap: 12}}>
           <Box size={22} color="var(--accent-browser)" fill="var(--accent-browser)" style={{opacity: 0.15}} />
-          PROJECT CORE
+          PROJECT SPECS
         </span>
         <div style={{display: 'flex', gap: 8}}>
           <Maximize2 size={16} color="var(--text-muted)" />
@@ -245,7 +245,7 @@ const ChatSidebar = ({
           )}
           <textarea 
             className="input-field"
-            placeholder="Assign a new objective to the core..."
+            placeholder="Assign a new objective to the specs..."
             value={input}
             onChange={handleInputChange}
             onKeyDown={(e) => {

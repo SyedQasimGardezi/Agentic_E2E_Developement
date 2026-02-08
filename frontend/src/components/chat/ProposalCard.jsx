@@ -25,7 +25,7 @@ const ProposalCard = ({ data, onApprove, onCancel }) => {
            
            <button style={{
                background: 'white', 
-               color: 'var(--accent-pm)', 
+               color: 'var(--accent-specs)', 
                border: 'none', 
                padding: '6px 14px', 
                borderRadius: 20,
@@ -44,7 +44,7 @@ const ProposalCard = ({ data, onApprove, onCancel }) => {
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
                <div className="modal-title" style={{color: 'var(--text-primary)'}}>
-                 <FileEdit size={18} color="var(--accent-pm)" />
+                 <FileEdit size={18} color="var(--accent-specs)" />
                  Review Ticket Proposal
                </div>
                <button 

@@ -1,7 +1,7 @@
 from camel.agents import ChatAgent
 from camel.toolkits import FunctionTool, GithubToolkit
 from tools.jira_tools import JiraTools
-from prompts.pm_agent_prompt import PM_AGENT_PROMPT
+from prompts.specs_agent_prompt import SPECS_AGENT_PROMPT
 from config.model_config import get_model
 from config.settings import settings
 import logging
@@ -27,7 +27,7 @@ if settings.GITHUB_ACCESS_TOKEN:
     try:
         gh_toolkit = GithubToolkit(access_token=settings.GITHUB_ACCESS_TOKEN)
         github_tools_list = gh_toolkit.get_tools()
-        logger.info("GitHub tools enabled for PM Agent.")
+        logger.info("GitHub tools enabled for Specs Agent.")
     except Exception as e:
         logger.warning(f"Failed to initialize GitHub tools for agent: {e}")
 else:
@@ -36,9 +36,9 @@ else:
 # Get centralized model configuration (always uses Azure 5.1 as per requirements)
 model = get_model()
 
-# Create PM Agent with all tools
-pm_agent = ChatAgent(
-    system_message=PM_AGENT_PROMPT,
+# Create Specs Agent with all tools
+specs_agent = ChatAgent(
+    system_message=SPECS_AGENT_PROMPT,
     model=model,
     tools=jira_tools_list + github_tools_list
 )
