@@ -8,3 +8,4 @@ uvicorn>=0.22.0
 python-multipart
 pydantic>=2.0.0
 colorlog>=6.7.0
+PyGithub>=2.0.0

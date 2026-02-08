@@ -1,5 +1,6 @@
 import React from 'react';
 import { Layout, Folder, Zap, Plus } from 'lucide-react';
+import ConnectionsBar from './ConnectionsBar';
 
 const WorkspaceNav = () => {
   return (
@@ -10,6 +11,10 @@ const WorkspaceNav = () => {
         <div className="nav-pill"><Zap size={16}/> Triggers</div>
       </div>
       <div style={{display: 'flex', alignItems: 'center', gap: 16}}>
+        <ConnectionsBar />
+        
+        <div style={{width: 1, height: 24, background: 'var(--border)'}} />
+
         <div style={{display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)'}}>
           <div style={{width: 8, height: 8, background: '#10b981', borderRadius: '50%'}} />
           SYSTEM ONLINE

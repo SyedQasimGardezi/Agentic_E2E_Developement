@@ -3,6 +3,7 @@ from jira import JIRA
 from config.settings import settings
 from logging_config.logger import logger
 from models.ticket import JiraTicket
+from models.proposal import TicketProposal
 
 class JiraTools:
     def __init__(self):
@@ -47,15 +48,15 @@ class JiraTools:
         normalized_type = type_mapping.get(issue_type.lower(), issue_type)
 
         logger.info(f"Proposing ticket: {summary}")
-        return {
-            "type": "PROPOSAL",
-            "summary": summary,
-            "description": description,
-            "issue_type": normalized_type,
-            "story_points": story_points,
-            "labels": labels or ["agent-core"],
-            "parent_key": parent_key
-        }
+        proposal = TicketProposal(
+            summary=summary,
+            description=description,
+            issue_type=normalized_type,
+            story_points=story_points,
+            labels=labels or ["agent-core"],
+            parent_key=parent_key
+        )
+        return proposal.to_dict()
 
     def create_ticket(self, summary: str, description: str, 
                      issue_type: str = "Story", 
