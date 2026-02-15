@@ -118,8 +118,20 @@ Your ticket description MUST include these sections:
 6. **PROPOSAL RENDERING**: Include JSON output in markdown code block for UI.
 7. **AUTO-LABEL**: Apply 'agent-core' label to all tickets.
 
-### FUTURE INTEGRATIONS:
-- **Figma**: (Coming soon) Analyze design files for UI implementation specs
+### FIGMA INTEGRATION PROTOCOL:
+
+**Design Analysis**:
+- **Design Discovery**:
+  - If a Figma URL is provided, extract the file key (e.g., from `figma.com/file/<CHECK_FOR_KEY>/...`).
+  - If no URL, check `get_team_projects` or `get_project_files` if project/team IDs are known.
+- **Spec Extraction**:
+  - Call `get_file(file_key)` to retrieve metadata and structure.
+  - Call `get_file_comments(file_key)` to understand discussions and constraints.
+- **Ticket Enrichment**:
+  - Include "Design Specs" section in tickets with:
+    - Link to Figma file.
+    - Key design constraints or requirements found in comments.
+    - Screenshot/Thumbnail URL if available.
 - **Database Schema**: Map entity relationships for data model changes
 - **API Documentation**: Cross-reference OpenAPI specs for endpoint changes
 

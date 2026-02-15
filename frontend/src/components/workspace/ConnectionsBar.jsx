@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Github, Figma, Plus, Link2 } from 'lucide-react';
 import GitConnectionModal from './GitConnectionModal';
-import { fetchGithubStatus } from '../../services/api';
+import FigmaConnectionModal from './FigmaConnectionModal';
+import { fetchGithubStatus, fetchFigmaStatus } from '../../services/api';
 
 const ConnectionIndicator = ({ icon: Icon, connected, label, onClick }) => {
   return (
@@ -65,11 +66,20 @@ const ConnectionsBar = () => {
   const [repoName, setRepoName] = useState(null);
   const [isGitModalOpen, setIsGitModalOpen] = useState(false);
 
+  const [figmaConnected, setFigmaConnected] = useState(false);
+  const [figmaFile, setFigmaFile] = useState(null);
+  const [isFigmaModalOpen, setIsFigmaModalOpen] = useState(false);
+
   useEffect(() => {
     // Check initial status
     fetchGithubStatus().then(status => {
          setGitConnected(status.connected);
          setRepoName(status.repo_name);
+    });
+
+    fetchFigmaStatus().then(status => {
+        setFigmaConnected(status.connected);
+        setFigmaFile(status.file_key || null);
     });
   }, []);
 
@@ -85,9 +95,9 @@ const ConnectionsBar = () => {
             
             <ConnectionIndicator 
                 icon={Figma} 
-                connected={false} 
-                label="NO DESIGN" 
-                onClick={() => alert("Figma integration coming soon!")}
+                connected={figmaConnected} 
+                label={figmaConnected ? "DESIGN LINKED" : "LINK DESIGN"} 
+                onClick={() => setIsFigmaModalOpen(true)}
             />
         </div>
 
@@ -104,6 +114,24 @@ const ConnectionsBar = () => {
                     } else {
                         setGitConnected(false);
                         setRepoName(null);
+                    }
+                }}
+            />
+        )}
+
+        {isFigmaModalOpen && (
+            <FigmaConnectionModal 
+                isOpen={isFigmaModalOpen} 
+                isConnected={figmaConnected}
+                connectedFileKey={figmaFile}
+                onClose={() => setIsFigmaModalOpen(false)}
+                onConnected={(data) => {
+                    if (data) {
+                        setFigmaConnected(true);
+                        setFigmaFile(data.file_key);
+                    } else {
+                        setFigmaConnected(false);
+                        setFigmaFile(null);
                     }
                 }}
             />

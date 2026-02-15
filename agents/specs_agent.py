@@ -1,6 +1,7 @@
 from camel.agents import ChatAgent
 from camel.toolkits import FunctionTool, GithubToolkit
 from tools.jira_tools import JiraTools
+from tools.figma_tools import FigmaTools
 from prompts.specs_agent_prompt import SPECS_AGENT_PROMPT
 from config.model_config import get_model
 from config.settings import settings
@@ -21,6 +22,20 @@ jira_tools_list = [
     FunctionTool(jira_tools.list_tickets),
 ]
 
+# Initialize Figma tools
+figma_tools = FigmaTools()
+figma_tools_list = []
+if settings.FIGMA_ACCESS_TOKEN:
+    figma_tools_list = [
+        FunctionTool(figma_tools.get_file),
+        FunctionTool(figma_tools.get_file_comments),
+        FunctionTool(figma_tools.get_team_projects),
+        FunctionTool(figma_tools.get_project_files),
+    ]
+    logger.info("Figma tools enabled for Specs Agent.")
+else:
+    logger.info("Figma tools disabled (no token provided).")
+
 # Initialize GitHub tools (Optional)
 github_tools_list = []
 if settings.GITHUB_ACCESS_TOKEN:
@@ -40,5 +55,5 @@ model = get_model()
 specs_agent = ChatAgent(
     system_message=SPECS_AGENT_PROMPT,
     model=model,
-    tools=jira_tools_list + github_tools_list
+    tools=jira_tools_list + github_tools_list + figma_tools_list
 )

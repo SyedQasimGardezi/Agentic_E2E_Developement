@@ -2,42 +2,39 @@ from typing import List
 from camel.agents import ChatAgent
 from camel.toolkits import FunctionTool, GithubToolkit, CodeExecutionToolkit
 from tools.jira_tools import JiraTools
-from prompts.dev_agent_prompt import DEV_AGENT_PROMPT
+from prompts.qa_agent_prompt import QA_AGENT_PROMPT
 from config.model_config import get_model
 from config.settings import settings
 import logging
-
-logger = logging.getLogger(__name__)
-
 from tools.progress_tracker import progress_tracker
 import os
 import uuid
 from camel.interpreters import DockerInterpreter
 from camel.interpreters.interpreter_error import InterpreterError
 from camel.utils import is_docker_running
-from tools.file_ops import read_file, replace_in_file, write_file
 
-# Define a tool for the agent to report progress
+logger = logging.getLogger(__name__)
+
+# --- Progress Reporting ---
 def report_task_progress(step_label: str, status: str, details: str = "", 
                          total_tests: int = 0, passed_tests: int = 0, failed_tests: int = 0) -> str:
     """
-    Update the user on your current progress.
+    Update the user on your current testing progress.
     Args:
-        step_label: A short name for the step (e.g. "Cloning Repo", "Running Tests")
+        step_label: A short name for the step (e.g. "Running Unit Tests")
         status: One of "pending", "active", "completed", "failed"
-        details: Optional technical details or logs
-        total_tests: Total number of test cases (if applicable)
-        passed_tests: Number of tests passed so far
-        failed_tests: Number of tests failed so far
+        details: Optional technical details or logs (e.g. "5/5 tests passed")
+        total_tests: Total number of test cases
+        passed_tests: Number of tests passed
+        failed_tests: Number of tests failed
     """
-    # Handle None values passed by LLM despite type hints
     safe_details = details if details is not None else ""
     t_val = total_tests if total_tests is not None else 0
     p_val = passed_tests if passed_tests is not None else 0
     f_val = failed_tests if failed_tests is not None else 0
 
-    # For now we use 'dev' as the session id
-    progress_tracker.update_step("dev", step_label, status, safe_details, 
+    # Use 'qa' as the session id
+    progress_tracker.update_step("qa", step_label, status, safe_details, 
                                  t_val if t_val > 0 else None, 
                                  p_val if t_val > 0 else None, 
                                  f_val if t_val > 0 else None)
@@ -45,26 +42,27 @@ def report_task_progress(step_label: str, status: str, details: str = "",
 
 def set_implementation_plan(steps: List[str]) -> str:
     """
-    Define a custom checklist of steps for the current task. 
-    Use this AFTER reading the ticket to show the user your planned workflow.
+    Define a custom checklist of steps for the QA task. 
     Args:
         steps: List of strings/labels for the checklist.
     """
     if steps is None:
         return "Error: steps list cannot be None."
-    progress_tracker.set_steps("dev", steps)
-    return "Implementation plan has been updated on the dashboard."
+    progress_tracker.set_steps("qa", steps)
+    return "QA plan has been updated on the dashboard."
 
-# Initialize Jira Tools (Read-Only wrappers for Dev Agent)
+# --- Jira Tools (QA Specific) ---
 jira_tools = JiraTools()
-jira_dev_tools = [
+jira_qa_tools = [
     FunctionTool(jira_tools.get_ticket),
+    FunctionTool(jira_tools.create_ticket),  # QA needs to create bugs/subtasks
     FunctionTool(jira_tools.add_comment),
     FunctionTool(jira_tools.update_ticket_status),
     FunctionTool(report_task_progress),
     FunctionTool(set_implementation_plan)
 ]
 
+# --- Docker Environment (Reuse Workspace) ---
 class WorkspaceDockerInterpreter(DockerInterpreter):
     """Custom Docker interpreter that mounts the host workspace directory."""
     def _initialize_if_needed(self) -> None:
@@ -101,7 +99,7 @@ class WorkspaceDockerInterpreter(DockerInterpreter):
         self._container = client.containers.run(
             image_tag,
             detach=True,
-            name=f"agentic-dev-{uuid.uuid4().hex[:8]}",
+            name=f"agentic-qa-{uuid.uuid4().hex[:8]}",
             command="tail -f /dev/null",
             volumes={workspace_path: {'bind': '/workspace', 'mode': 'rw'}},
             working_dir='/workspace'
@@ -121,21 +119,20 @@ code_toolkit.interpreter = WorkspaceDockerInterpreter(
     print_stderr=True
 )
 
-def log_command_progress(command: str) -> str:
+def execute_command(command: str) -> str:
     """Execute a shell command with detailed logging in Docker container."""
     if command is None:
         return "Error: command cannot be None."
     # Add to logs immediately
-    progress_tracker.add_log("dev", f"Running: {command}")
+    progress_tracker.add_log("qa", f"Running: {command}")
     
     # Check if this command matches a major checklist step to update status
+    # Simple heuristic
     milestone = None
-    if "git clone" in command: milestone = "Clone Repo"
-    elif "git push" in command: milestone = "Commit & Push"
-    elif "test" in command or "verify" in command: milestone = "Run Verification"
+    if "test" in command or "npm run" in command or "pytest" in command: milestone = "Run Tests"
     
     if milestone:
-        progress_tracker.update_step("dev", milestone, "active", f"Running {command[:20]}...")
+        progress_tracker.update_step("qa", milestone, "active", f"Running {command[:20]}...")
 
     try:
         orig_tool = next(t for t in code_toolkit.get_tools() if t.func.__name__ == 'execute_command')
@@ -157,62 +154,44 @@ def log_command_progress(command: str) -> str:
         result = orig_tool.func(wrapped_command)
         
         # Log result
-        progress_tracker.add_log("dev", f"Output: {str(result)[:500]}")
+        progress_tracker.add_log("qa", f"Output: {str(result)[:500]}")
         if milestone:
-            progress_tracker.update_step("dev", milestone, "completed")
+             # Don't auto-complete "Run Tests" because we might run multiple.
+             # Let the agent decide when to complete.
+             pass
             
         return result
     except Exception as e:
-        progress_tracker.add_log("dev", f"ERROR: {str(e)}")
+        progress_tracker.add_log("qa", f"ERROR: {str(e)}")
         if milestone:
-            progress_tracker.update_step("dev", milestone, "failed", str(e))
+            progress_tracker.update_step("qa", milestone, "failed", str(e))
         raise e
 
-# Replace original execute_command with our wrapped version for better UX
+# Replace original execute_command with our wrapped version
 code_tools = []
 for tool in code_toolkit.get_tools():
     if tool.func.__name__ == 'execute_command':
-        code_tools.append(FunctionTool(log_command_progress))
+        # Name it execute_command so the agent recognizes it
+        code_tools.append(FunctionTool(execute_command))
     else:
         code_tools.append(tool)
 
-# Add file editing tools
-code_tools.extend([
-    FunctionTool(read_file),
-    FunctionTool(replace_in_file),
-    FunctionTool(write_file)
-])
-
-# Initialize GitHub Tools
+# --- GitHub Tools ---
 github_tools_list = []
-# Force use the hardcoded token
 gh_token = settings.GITHUB_ACCESS_TOKEN
 try:
     gh_toolkit = GithubToolkit(access_token=gh_token)
     github_tools_list = gh_toolkit.get_tools()
-    logger.info(f"GitHub tools hardcoded for Developer Agent.")
 except Exception as e:
-    logger.warning(f"Failed to initialize GitHub tools for Dev Agent: {e}")
+    logger.warning(f"Failed to initialize GitHub tools for QA Agent: {e}")
 
 # Retrieve the model
 model = get_model()
 
-# Initialize Figma tools
-from tools.figma_tools import FigmaTools
-figma_tools = FigmaTools()
-figma_dev_tools = []
-if settings.FIGMA_ACCESS_TOKEN:
-    figma_dev_tools = [
-        FunctionTool(figma_tools.get_file),
-        FunctionTool(figma_tools.get_file_comments),
-    ]
-    logger.info("Figma tools enabled for Developer Agent.")
-
-# Create Developer Agent with Full Toolset
-dev_agent = ChatAgent(
-    system_message=DEV_AGENT_PROMPT,
+# Create QA Agent
+qa_agent = ChatAgent(
+    system_message=QA_AGENT_PROMPT,
     model=model,
-    tools=jira_dev_tools + code_tools + github_tools_list + figma_dev_tools,
-    step_timeout=600  # 10 minutes to handle npm install, git operations, etc.
+    tools=jira_qa_tools + code_tools + github_tools_list,
+    step_timeout=600  # 10 minutes for long running tests
 )
-

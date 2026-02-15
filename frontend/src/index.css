@@ -13,6 +13,7 @@
   --accent-specs: #3b82f6;      /* Modern Blue */
   --accent-browser: #6366f1; /* Indigo */
   --accent-dev: #10b981;     /* Emerald */
+  --accent-qa: #f59e0b;      /* Amber */
   
   --border: #e2e8f0;
   --radius-lg: 24px;         /* More rounded for premium feel */
@@ -55,6 +56,15 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.agent-card .task-stack::-webkit-scrollbar {
+  display: none;
+}
+
+.agent-card .task-stack {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .app-wrapper {
@@ -234,7 +244,7 @@ body {
 .agent-hub {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 32px;
   padding: 32px;
   overflow: hidden;
@@ -301,7 +311,7 @@ body {
 }
 
 .task-tile:hover {
-  border-color: var(--accent-pm);
+  border-color: var(--accent-specs);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
@@ -321,7 +331,7 @@ body {
 .subtask-count {
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--accent-pm);
+  color: var(--accent-specs);
   background: rgba(59, 130, 246, 0.08);
   padding: 2px 8px;
   border-radius: 20px;
@@ -375,6 +385,9 @@ body {
   font-weight: 500;
   line-height: 1.5;
   color: var(--text-secondary);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .hover-status-badge {
@@ -468,7 +481,7 @@ body {
 .proposal-card {
   margin-top: 12px;
   background: white;
-  border: 1px solid var(--accent-pm);
+  border: 1px solid var(--accent-specs);
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.1);
@@ -476,8 +489,8 @@ body {
 }
 
 .proposal-header {
-  background: var(--accent-pm);
-  color: var(--accent-specs);
+  background: var(--accent-specs);
+  color: white;
   padding: 10px 16px;
   font-size: 0.7rem;
   font-weight: 800;

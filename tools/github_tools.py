@@ -7,7 +7,7 @@ from models.github import GitHubRepo
 class GitHubTools:
     def __init__(self):
         self.access_token = settings.GITHUB_ACCESS_TOKEN
-        self.current_repo = settings.GITHUB_DEFAULT_REPO
+        self.current_repo = None # Initially disconnected
         self.toolkit = None
         
         if self.access_token:

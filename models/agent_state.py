@@ -10,13 +10,19 @@ class AgentStep:
     label: str
     status: Literal["pending", "active", "completed", "failed"] = "pending"
     details: str = ""
+    total_tests: Optional[int] = None
+    passed_tests: Optional[int] = None
+    failed_tests: Optional[int] = None
 
     def to_dict(self):
         return {
             "id": self.id,
             "label": self.label,
             "status": self.status,
-            "details": self.details
+            "details": self.details,
+            "total_tests": self.total_tests,
+            "passed_tests": self.passed_tests,
+            "failed_tests": self.failed_tests
         }
 
 @dataclass

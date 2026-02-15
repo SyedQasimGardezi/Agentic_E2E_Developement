@@ -44,6 +44,14 @@ async def get_github_status():
         logger.error(f"Failed to get GitHub status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/disconnect")
+async def disconnect_github():
+    """
+    Disconnects the current repository.
+    """
+    github_tools.current_repo = None
+    return {"success": True, "message": "Disconnected from GitHub"}
+
 @router.get("/repos")
 async def list_repos():
     """

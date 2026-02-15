@@ -14,6 +14,27 @@ const App = () => {
   const [activeTicket, setActiveTicket] = useState(null); // ticket key
   const [activeBranch, setActiveBranch] = useState('main'); 
   const [pendingFinalResponse, setPendingFinalResponse] = useState(false);
+  const [showApproval, setShowApproval] = useState(false);
+  const [activeView, setActiveView] = useState('overview'); // 'overview' | 'browser'
+
+  // Parse agent messages to detect approval request
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg && lastMsg.role === 'agent' && (
+        lastMsg.content.toLowerCase().includes("approve") || 
+        lastMsg.content.toLowerCase().includes("browser tab")
+    )) {
+        setShowApproval(true);
+    } else {
+        setShowApproval(false);
+    }
+  }, [messages]);
+
+  const handleApproval = () => {
+    handleSendMessage("Approve");
+    setShowApproval(false);
+  };
+
 
   // Initial Data Load & Polling
   useEffect(() => {
@@ -22,34 +43,33 @@ const App = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Progress Polling
+  // WebSocket for real-time progress
   useEffect(() => {
-    const interval = setInterval(async () => {
-        const data = await fetchAgentProgress();
-        setProgress(data);
+    // Initial fetch to get current state
+    fetchAgentProgress(activeAgent).then(setProgress);
 
-        // Check if background task finished
-        if (pendingFinalResponse && data.final_response) {
-            handleAgentTaskComplete(data.final_response);
-            setPendingFinalResponse(false);
-        }
-
-        // Check if task timed out or failed (detect from logs)
-        if (pendingFinalResponse && data.logs && data.logs.length > 0) {
-            const lastLog = data.logs[data.logs.length - 1];
-            if (lastLog.includes('timeout') || lastLog.includes('❌ Error:')) {
-                setIsLoading(false);
-                setPendingFinalResponse(false);
-                setMessages(prev => [...prev, { 
-                    id: Date.now(), 
-                    role: 'agent', 
-                    content: '⚠️ Task execution timed out. Check the sandbox logs and repository for completed work.' 
-                }]);
+    const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws`);
+    
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'progress') {
+        if (message.task_id === activeAgent) {
+            setProgress(message.data);
+            
+            // Check if background task finished
+            if (pendingFinalResponse && message.data.final_response) {
+              handleAgentTaskComplete(message.data.final_response);
+              setPendingFinalResponse(false);
             }
         }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [pendingFinalResponse]);
+      }
+    };
+
+    ws.onopen = () => console.log("Connected to Progress WebSocket");
+    ws.onclose = () => console.log("Disconnected from Progress WebSocket");
+
+    return () => ws.close();
+  }, [activeAgent, pendingFinalResponse]);
 
   const loadTickets = async () => {
     const data = await fetchTickets();
@@ -80,6 +100,17 @@ const App = () => {
     
     setIsLoading(false);
     loadTickets();
+    // One final progress fetch to get the "completed" ticks
+    fetchAgentProgress(activeAgent).then(data => {
+        setProgress(data);
+        // If implementation is completed, show approval button (Dev only)
+        if (activeAgent === 'dev') {
+            const implStep = data.steps.find(s => s.label.toLowerCase().includes('implement'));
+            if (implStep && implStep.status === 'completed') {
+                setShowApprovalAction(true);
+            }
+        }
+    });
   };
 
   const handleSendMessage = async (userText) => {
@@ -93,8 +124,8 @@ const App = () => {
       };
       const data = await sendChatMessage(userText, activeAgent, metadata);
       
-      if (activeAgent === 'dev') {
-          // Dev agent returns immediately while background task runs
+      if (activeAgent === 'dev' || activeAgent === 'qa') {
+          // Dev/QA agent returns immediately while background task runs
           setPendingFinalResponse(true);
           setMessages(prev => [...prev, { 
             id: Date.now() + 1, 
@@ -156,15 +187,19 @@ const App = () => {
         setActiveTicket={setActiveTicket}
         activeBranch={activeBranch}
         setActiveBranch={setActiveBranch}
+        showApprovalAction={showApproval}
+        onApprovePush={handleApproval}
       />
 
       <main className="workspace-canvas">
-        <WorkspaceNav />
+        <WorkspaceNav activeView={activeView} setActiveView={setActiveView} />
         <AgentHub 
           tickets={tickets}
           progress={progress}
           expandedParents={expandedParents}
           onToggle={toggleParent}
+          activeAgent={activeAgent}
+          activeView={activeView}
         />
       </main>
     </div>
