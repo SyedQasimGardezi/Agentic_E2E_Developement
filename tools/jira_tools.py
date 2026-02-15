@@ -260,6 +260,7 @@ class JiraTools:
                 assignee=str(issue.fields.assignee) if issue.fields.assignee else "Unassigned",
                 labels=getattr(issue.fields, 'labels', []),
                 issue_type=issue.fields.issuetype.name,
+                url=f"{self.base_url}/browse/{issue.key}",
                 parent_key=getattr(issue.fields, 'parent', None).key if hasattr(issue.fields, 'parent') else None
             )
             ticket_list.append(ticket.to_dict())

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Github, Loader2, X, Check, AlertCircle, Search, Shield, Globe, ChevronRight, Plus, Rocket, Info } from 'lucide-react';
-import { connectGithubRepo, fetchGithubDetails, fetchGithubRepos, createGithubRepo } from '../../services/api';
+import { connectGithubRepo, fetchGithubDetails, fetchGithubRepos, createGithubRepo, disconnectGithub } from '../../services/api';
 
 const GitConnectionModal = ({ isOpen, onClose, onConnected, isConnected, connectedRepoName }) => {
   const [activeTab, setActiveTab] = useState('connect'); // 'connect' or 'create'
@@ -381,10 +381,15 @@ const GitConnectionModal = ({ isOpen, onClose, onConnected, isConnected, connect
                             fontSize: '0.9rem',
                             transition: 'all 0.2s'
                         }}
-                        onClick={() => { 
-                            setDetails(null); 
-                            setRepoName(''); 
-                            onConnected && onConnected(null);
+                        onClick={async () => { 
+                            try {
+                                await disconnectGithub();
+                                setDetails(null); 
+                                setRepoName(''); 
+                                onConnected && onConnected(null);
+                            } catch (e) {
+                                console.error("Failed to disconnect", e);
+                            }
                         }} 
                     >
                         Disconnect

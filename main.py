@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from contextlib import asynccontextmanager
 
-from routes import agent, jira, github
+from routes import agent, jira, github, figma
 from logging_config.logger import logger
+from fastapi import WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+import os
+from tools.websocket_manager import manager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,6 +31,27 @@ app.add_middleware(
 app.include_router(agent.router)
 app.include_router(jira.router)
 app.include_router(github.router)
+app.include_router(figma.router)
+
+# Ensure workspace exists for static mounting
+if not os.path.exists("workspace"):
+    os.makedirs("workspace")
+
+# Mount workspace for live previews
+app.mount("/preview", StaticFiles(directory="workspace", html=True), name="preview")
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await manager.connect(websocket)
+    try:
+        while True:
+            # Keep connection alive
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        manager.disconnect(websocket)
 
 @app.get("/")
 async def root():

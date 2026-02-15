@@ -10,7 +10,9 @@ import {
   Code2,
   Users,
   Briefcase,
-  GitBranch
+  GitBranch,
+  CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
 import { fetchGithubBranches } from '../../services/api';
 import MessageBubble from './MessageBubble';
@@ -27,7 +29,9 @@ const ChatSidebar = ({
     activeTicket,
     setActiveTicket,
     activeBranch,
-    setActiveBranch
+    setActiveBranch,
+    showApprovalAction,
+    onApprovePush
 }) => {
   const [input, setInput] = useState('');
   const [showMentions, setShowMentions] = useState(false);
@@ -107,7 +111,7 @@ const ChatSidebar = ({
                 transition: 'all 0.2s'
             }}
         >
-            <Briefcase size={14} /> SPECS AGENT
+            <Briefcase size={14} /> SPECS
         </div>
         <div 
             onClick={() => setActiveAgent('dev')}
@@ -128,7 +132,28 @@ const ChatSidebar = ({
                 transition: 'all 0.2s'
             }}
         >
-            <Code2 size={14} /> DEVELOPER
+            <Code2 size={14} /> DEV
+        </div>
+        <div 
+            onClick={() => setActiveAgent('qa')}
+            style={{
+                flex: 1, 
+                padding: '6px 12px', 
+                borderRadius: 6, 
+                fontSize: '0.75rem', 
+                fontWeight: 700, 
+                cursor: 'pointer',
+                background: activeAgent === 'qa' ? 'white' : 'transparent',
+                color: activeAgent === 'qa' ? 'var(--accent-qa)' : 'var(--text-muted)',
+                boxShadow: activeAgent === 'qa' ? '0 1px 2px rgba(0,0,0,0.05)' : 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 0.2s'
+            }}
+        >
+            <ShieldCheck size={14} /> QA
         </div>
       </div>
   );
@@ -138,10 +163,13 @@ const ChatSidebar = ({
       <header className="sidebar-header">
         <span style={{display: 'flex', alignItems: 'center', gap: 12}}>
           <Box size={22} color="var(--accent-browser)" fill="var(--accent-browser)" style={{opacity: 0.15}} />
-          PROJECT SPECS
+          {
+            activeAgent === 'specs' ? 'PROJECT SPECS' :
+            activeAgent === 'dev' ? 'DEVELOPER CONSOLE' :
+            'QA CONSOLE'
+          }
         </span>
         <div style={{display: 'flex', gap: 8}}>
-          <Maximize2 size={16} color="var(--text-muted)" />
         </div>
       </header>
       
@@ -167,36 +195,6 @@ const ChatSidebar = ({
                             <Users size={12} color="#15803d"/>
                         </button>
                     )}
-                </div>
-
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: 'var(--bg-main)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 6,
-                    padding: '4px 8px'
-                }}>
-                    <GitBranch size={14} color="var(--text-muted)" />
-                    <select 
-                        value={activeBranch || 'main'} 
-                        onChange={(e) => setActiveBranch(e.target.value)}
-                        style={{
-                            background: 'none',
-                            border: 'none',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            color: 'var(--text-secondary)',
-                            flex: 1,
-                            outline: 'none',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {branches.length > 0 ? branches.map(b => (
-                            <option key={b} value={b}>{b}</option>
-                        )) : <option value="main">main</option>}
-                    </select>
                 </div>
             </div>
         )}
@@ -226,6 +224,41 @@ const ChatSidebar = ({
         <div ref={messagesEndRef} />
       </div>
 
+      {showApprovalAction && (
+        <div style={{
+          padding: '16px 24px',
+          background: 'rgba(16, 185, 129, 0.05)',
+          borderTop: '1px solid rgba(16, 185, 129, 0.2)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12
+        }}>
+          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--accent-dev)', textAlign: 'center' }}>
+            IMPLEMENTATION READY FOR REVIEW
+          </div>
+          <button 
+            onClick={onApprovePush}
+            style={{
+              padding: '12px',
+              background: 'var(--accent-dev)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)'
+            }}
+          >
+            <CheckCircle2 size={18} /> Approve & Push to Git
+          </button>
+        </div>
+      )}
+      
       <div className="chat-footer">
         <form onSubmit={handleSubmit} className="input-container">
           {showMentions && (
@@ -245,7 +278,11 @@ const ChatSidebar = ({
           )}
           <textarea 
             className="input-field"
-            placeholder="Assign a new objective to the specs..."
+            placeholder={
+                activeAgent === 'specs' ? "Assign a new objective to the specs..." :
+                activeAgent === 'dev' ? "Instruct the developer (e.g., 'Update the header color')..." :
+                "Give instructions to QA (e.g., 'Run smoke tests')..."
+            }
             value={input}
             onChange={handleInputChange}
             onKeyDown={(e) => {
@@ -255,12 +292,7 @@ const ChatSidebar = ({
               }
             }}
           />
-          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8}}>
-            <div style={{display: 'flex', gap: 20, color: 'var(--text-muted)'}}>
-              <Zap size={18} cursor="pointer" style={{transition: 'color 0.2s'}} onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'} />
-              <Cpu size={18} cursor="pointer" style={{transition: 'color 0.2s'}} onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'} />
-              <Command size={18} cursor="pointer" style={{transition: 'color 0.2s'}} onMouseEnter={(e) => e.target.style.color = 'var(--text-primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-muted)'} />
-            </div>
+          <div style={{display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: 8}}>
             <button 
               type="submit" 
               disabled={isLoading || !input.trim()}

@@ -5,7 +5,7 @@ A premium, state-of-the-art agentic framework for autonomous web exploration and
 ## Key Features
 
 - **Context-Bound Planning**: Agents analyze repository structure before proposing changes.
-- **Unified Ecosystem**: Integrated Jira, GitHub, and Sandbox environments.
+- **Unified Ecosystem**: Integrated Jira, GitHub, and Docker environments.
 - **Traceable Progress**: Real-time progress tracking for background agent tasks.
 - **Smart Jira Automation**: Seamlessly create, update, and manage Jira tickets based on complex requirements
 

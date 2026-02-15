@@ -131,3 +131,121 @@ export const createGithubRepo = async (name, description, isPrivate) => {
         throw err;
     }
 };
+
+// FIGMA INTEGRATION
+
+export const fetchFigmaStatus = async () => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/status`);
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch figma status", err);
+        return { connected: false };
+    }
+};
+
+export const connectFigmaFile = async (fileKey, token) => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/connect`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file_key: fileKey, access_token: token })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Failed to connect to Figma file");
+        }
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to connect figma file", err);
+        throw err;
+    }
+};
+
+export const fetchFigmaFileDetails = async (fileKey) => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/file/${fileKey}`);
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch figma file details", err);
+        return null;
+    }
+};
+
+export const fetchFigmaComments = async (fileKey) => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/comments/${fileKey}`);
+        if (!res.ok) return { comments: [] };
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch figma comments", err);
+        return { comments: [] };
+    }
+};
+
+export const fetchFigmaTeamProjects = async () => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/team/projects`);
+        if (!res.ok) return { projects: [] };
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch figma team projects", err);
+        return { projects: [] };
+    }
+};
+
+export const fetchFigmaProjectFiles = async (projectId) => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/project/${projectId}/files`);
+        if (!res.ok) return { files: [] };
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch figma project files", err);
+        return { files: [] };
+    }
+};
+
+export const disconnectFigma = async () => {
+    try {
+        const res = await fetch(`${API_BASE}/figma/disconnect`, { method: 'POST' });
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to disconnect figma", err);
+        return { success: false };
+    }
+}
+
+export const disconnectGithub = async () => {
+    try {
+        const res = await fetch(`${API_BASE}/github/disconnect`, { method: 'POST' });
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to disconnect github", err);
+        return { success: false };
+    }
+}
+
+// BROWSER API
+export const fetchWorkspaceFiles = async (path = '.') => {
+    try {
+        const res = await fetch(`${API_BASE}/agent/files?path=${path}`);
+        if (!res.ok) return [];
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch workspace files", err);
+        return [];
+    }
+};
+
+export const fetchFileContent = async (path) => {
+    try {
+        const res = await fetch(`${API_BASE}/agent/file_content?path=${path}`);
+        if (!res.ok) throw new Error("Failed to fetch file content");
+        return await res.json();
+    } catch (err) {
+        console.error("Failed to fetch file content", err);
+        throw err;
+    }
+};
+

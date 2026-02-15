@@ -20,5 +20,14 @@ class Settings:
     # GitHub Settings
     GITHUB_ACCESS_TOKEN = os.getenv("GITHUB_ACCESS_TOKEN")
     GITHUB_DEFAULT_REPO = os.getenv("GITHUB_DEFAULT_REPO", "SyedQasimGardezi/Agentic_E2E_Developement")
+    
+    # Git User Settings (for commits)
+    GIT_USER_EMAIL = os.getenv("GIT_USER_EMAIL", JIRA_EMAIL)
+    GIT_USER_NAME = os.getenv("GIT_USER_NAME", "Agentic Developer")
+
+    # Figma Settings
+    FIGMA_ACCESS_TOKEN = os.getenv("FIGMA_ACCESS_TOKEN")
+    FIGMA_TEAM_ID = os.getenv("FIGMA_TEAM_ID")
+    FIGMA_PROJECT_ID = os.getenv("FIGMA_PROJECT_ID")
 
 settings = Settings()
